@@ -537,7 +537,7 @@ function computeConfigLabel(schema, localize = () => "") {
 
 function computeConfigHelper(schema) {
   if (schema.name === "title") {
-    return "Optional. Replaces the period label, such as Today or Now.";
+    return "Optional. Replaces the period label, such as Today or Now. A blank value hides the label.";
   }
   if (schema.name === "show_card") {
     return "Off hides only the background, border, and shadow. The layout stays the same.";
@@ -652,7 +652,6 @@ class HaPowerEnergyMixCard extends HTMLElement {
   static getStubConfig() {
     return {
       default_mode: "power",
-      title: "",
       show_card: true,
       tap_action: { action: "none" },
       hold_action: { action: "none" },
@@ -667,7 +666,6 @@ class HaPowerEnergyMixCard extends HTMLElement {
     const configurationChanged = this._configurationInitialized;
     this._config = {
       default_mode: "power",
-      title: "",
       show_card: true,
       tap_action: { action: "none" },
       hold_action: { action: "none" },
@@ -984,20 +982,21 @@ class HaPowerEnergyMixCard extends HTMLElement {
       "ui.panel.lovelace.cards.energy.no_data",
       "No data"
     );
-    const configuredTitle =
-      typeof this._config.title === "string" ? this._config.title.trim() : "";
+    // A configured title always wins, a blank one leaves the label empty;
+    // only an absent option keeps the automatic period name.
     const periodLabel =
-      configuredTitle ||
-      (this._mode === "power"
-        ? this._localize(
-            "ui.panel.lovelace.components.energy_period_selector.now",
-            "Now"
-          )
-        : getEnergyPeriodLabel(
-            this._hass,
-            this._data?.start,
-            this._data?.end
-          ));
+      this._config.title === null || typeof this._config.title === "string"
+        ? (this._config.title ?? "").trim()
+        : this._mode === "power"
+          ? this._localize(
+              "ui.panel.lovelace.components.energy_period_selector.now",
+              "Now"
+            )
+          : getEnergyPeriodLabel(
+              this._hass,
+              this._data?.start,
+              this._data?.end
+            );
     const wrapperTag = this._config.show_card === false ? "div" : "ha-card";
     const actionable = [
       "tap_action",

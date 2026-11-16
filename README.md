@@ -87,7 +87,7 @@ collection_key: energy_1
 
 | Option | Required | Default | Description |
 | --- | --- | --- | --- |
-| `title` | No | Empty | Optional label shown instead of the period name |
+| `title` | No | Period name | Optional label shown instead of the period name; a blank value hides the label |
 | `collection_key` | No | Today | Optional shared Energy collection key; it must start with `energy_` |
 | `default_mode` | No | `power` | Initial mode: `power` or `energy` |
 | `show_card` | No | `true` | Whether to render the Home Assistant card frame; off hides only the background, border, and shadow |
@@ -99,7 +99,8 @@ All options are available in the visual editor. Without a `title`, Power mode
 displays Home Assistant's localized **Now** label; Energy mode displays its
 localized relative period name, such as **Today**, **Yesterday**, or
 **Last week**. Periods without a Home Assistant name display an exact date or
-date range. A configured `title` replaces that label.
+date range. A configured `title` replaces that label, and a `title` of only
+whitespace hides it.
 Tap, hold, and double-tap actions are grouped in the **Interactions** section.
 Title, Energy collection key, default view, and card background are grouped in
 the **Configuration** section. The Energy collection key is only shown when

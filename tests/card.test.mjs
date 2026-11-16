@@ -178,7 +178,6 @@ test("provides a visual editor schema and stub configuration", () => {
   );
   assert.deepEqual(Card.getStubConfig(), {
     default_mode: "power",
-    title: "",
     show_card: true,
     tap_action: { action: "none" },
     hold_action: { action: "none" },
@@ -225,6 +224,11 @@ test("lists editor options in the order of the documented options", () => {
       ...energySchema[0].schema.map((entry) => entry.name),
       ...energySchema[1].schema.map((entry) => entry.name),
     ]
+  );
+  const stub = Object.keys(Card.getStubConfig());
+  assert.deepEqual(
+    stub,
+    documented.filter((name) => stub.includes(name))
   );
 });
 
@@ -579,6 +583,20 @@ test("uses a configured title in place of the period label", () => {
     default_mode: "energy",
     title: "   ",
   });
+  assert.match(card.shadowRoot.innerHTML, /class="period-label"><\/div>/);
+  assert.doesNotMatch(
+    card.shadowRoot.innerHTML,
+    /class="period-label">Localized today/
+  );
+
+  card.setConfig({
+    collection_key: "energy_1",
+    default_mode: "energy",
+    title: null,
+  });
+  assert.match(card.shadowRoot.innerHTML, /class="period-label"><\/div>/);
+
+  card.setConfig({ collection_key: "energy_1", default_mode: "energy" });
   assert.match(
     card.shadowRoot.innerHTML,
     /class="period-label">Localized today<\/div>/
@@ -587,6 +605,10 @@ test("uses a configured title in place of the period label", () => {
   assert.match(
     Card.getConfigForm().computeHelper({ name: "title" }),
     /Replaces the period label/
+  );
+  assert.match(
+    Card.getConfigForm().computeHelper({ name: "title" }),
+    /A blank value hides the label/
   );
 });
 
