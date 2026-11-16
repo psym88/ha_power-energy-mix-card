@@ -455,27 +455,25 @@ function getEnergyComposition(data) {
 }
 
 function buildConfigSchema(mode = "power") {
-  const configuration = [
-    { name: "title", selector: { text: {} } },
-    {
-      name: "default_mode",
-      selector: {
-        select: {
-          mode: "dropdown",
-          options: [
-            { value: "power", label: "Power" },
-            { value: "energy", label: "Energy" },
-          ],
-        },
-      },
-    },
-  ];
+  const configuration = [{ name: "title", selector: { text: {} } }];
   if (mode === "energy") {
     configuration.push({
       name: "collection_key",
       selector: { text: {} },
     });
   }
+  configuration.push({
+    name: "default_mode",
+    selector: {
+      select: {
+        mode: "dropdown",
+        options: [
+          { value: "power", label: "Power" },
+          { value: "energy", label: "Energy" },
+        ],
+      },
+    },
+  });
   configuration.push({
     name: "show_card",
     selector: { boolean: {} },
@@ -538,6 +536,12 @@ function computeConfigLabel(schema, localize = () => "") {
 }
 
 function computeConfigHelper(schema) {
+  if (schema.name === "title") {
+    return "Optional. Replaces the period label, such as Today or Now.";
+  }
+  if (schema.name === "show_card") {
+    return "Off hides only the background, border, and shadow. The layout stays the same.";
+  }
   return schema.name === "collection_key"
     ? "Optional. Without a collection key, Energy mode displays today's values. Use the same energy_* key to share a period with related Energy cards."
     : undefined;
@@ -980,8 +984,11 @@ class HaPowerEnergyMixCard extends HTMLElement {
       "ui.panel.lovelace.cards.energy.no_data",
       "No data"
     );
+    const configuredTitle =
+      typeof this._config.title === "string" ? this._config.title.trim() : "";
     const periodLabel =
-      this._mode === "power"
+      configuredTitle ||
+      (this._mode === "power"
         ? this._localize(
             "ui.panel.lovelace.components.energy_period_selector.now",
             "Now"
@@ -990,17 +997,13 @@ class HaPowerEnergyMixCard extends HTMLElement {
             this._hass,
             this._data?.start,
             this._data?.end
-          );
+          ));
     const wrapperTag = this._config.show_card === false ? "div" : "ha-card";
     const actionable = [
       "tap_action",
       "hold_action",
       "double_tap_action",
     ].some((actionName) => this._hasAction(actionName));
-    const title = this._config.title
-      ? `<div class="title">${escapeHtml(this._config.title)}</div>`
-      : "";
-
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -1020,8 +1023,10 @@ class HaPowerEnergyMixCard extends HTMLElement {
           overflow: hidden;
         }
         .card.frameless {
-          padding: 0;
           background: transparent;
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
         }
         .card.actionable {
           cursor: pointer;
@@ -1029,13 +1034,6 @@ class HaPowerEnergyMixCard extends HTMLElement {
           user-select: none;
           -webkit-user-select: none;
           -webkit-tap-highlight-color: transparent;
-        }
-        .title {
-          flex: none;
-          margin-bottom: 8px;
-          color: var(--primary-text-color);
-          font-size: var(--ha-font-size-l, 16px);
-          font-weight: var(--ha-font-weight-medium, 500);
         }
         .header {
           display: flex;
@@ -1047,9 +1045,13 @@ class HaPowerEnergyMixCard extends HTMLElement {
           margin-bottom: 8px;
         }
         .period-label {
+          min-width: 0;
+          overflow: hidden;
           color: var(--primary-text-color);
           font-size: var(--ha-font-size-m, 14px);
           font-weight: var(--ha-font-weight-medium, 500);
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .value {
           overflow: hidden;
@@ -1127,7 +1129,6 @@ class HaPowerEnergyMixCard extends HTMLElement {
       } ${actionable ? "actionable" : ""}" ${
         actionable ? 'role="button" tabindex="0"' : ""
       }>
-        ${title}
         <div class="header">
           <div class="period-label">${escapeHtml(periodLabel)}</div>
           <div class="value">${escapeHtml(valueText)}</div>

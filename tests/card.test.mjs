@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 class MockShadowRoot {
@@ -196,7 +197,7 @@ test("shows the collection key only for the Energy editor mode", () => {
   );
   assert.deepEqual(
     buildConfigSchema("energy")[0].schema.map((entry) => entry.name),
-    ["title", "default_mode", "collection_key", "show_card"]
+    ["title", "collection_key", "default_mode", "show_card"]
   );
   assert.equal(
     Card.getConfigElement().constructor,
@@ -205,6 +206,25 @@ test("shows the collection key only for the Energy editor mode", () => {
   assert.match(
     Card.getConfigForm().computeHelper({ name: "collection_key" }),
     /Optional.*today's values/
+  );
+});
+
+test("lists editor options in the order of the documented options", () => {
+  const readme = readFileSync(
+    new URL("../README.md", import.meta.url),
+    "utf8"
+  );
+  const documented = [...readme.matchAll(/^\| `([a-z_]+)` \|/gm)].map(
+    (row) => row[1]
+  );
+  const energySchema = buildConfigSchema("energy");
+
+  assert.deepEqual(
+    documented,
+    [
+      ...energySchema[0].schema.map((entry) => entry.name),
+      ...energySchema[1].schema.map((entry) => entry.name),
+    ]
   );
 });
 
@@ -230,7 +250,7 @@ test("updates the existing editor form without closing expandable sections", () 
   assert.equal(renderCount, 0);
   assert.deepEqual(
     form.schema[0].schema.map((entry) => entry.name),
-    ["title", "default_mode", "collection_key", "show_card"]
+    ["title", "collection_key", "default_mode", "show_card"]
   );
 });
 
@@ -517,6 +537,85 @@ test("shows a localized period label and animates only the Power view", () => {
   assert.match(
     card.shadowRoot.innerHTML,
     /class="period-label">Localized today<\/div>/
+  );
+});
+
+test("uses a configured title in place of the period label", () => {
+  const card = new Card();
+  card._data = {
+    prefs: {
+      energy_sources: [
+        { type: "solar", stat_rate: "sensor.solar_power" },
+      ],
+    },
+    stats: {},
+  };
+  card.setConfig({
+    collection_key: "energy_1",
+    default_mode: "energy",
+    title: "Home & Garden",
+  });
+  card.hass = {
+    locale: { language: "en" },
+    localize(key) {
+      if (key.endsWith("periods.today")) return "Localized today";
+      return "";
+    },
+    states: {},
+  };
+
+  assert.match(
+    card.shadowRoot.innerHTML,
+    /class="period-label">Home &amp; Garden<\/div>/
+  );
+  assert.doesNotMatch(
+    card.shadowRoot.innerHTML,
+    /class="period-label">Localized today/
+  );
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /class="title"/);
+
+  card.setConfig({
+    collection_key: "energy_1",
+    default_mode: "energy",
+    title: "   ",
+  });
+  assert.match(
+    card.shadowRoot.innerHTML,
+    /class="period-label">Localized today<\/div>/
+  );
+
+  assert.match(
+    Card.getConfigForm().computeHelper({ name: "title" }),
+    /Replaces the period label/
+  );
+});
+
+test("hides only the frame when the card background is off", () => {
+  const card = new Card();
+  card._data = { prefs: { energy_sources: [] }, stats: {} };
+  card.hass = { locale: { language: "en" }, states: {}, localize: () => "" };
+
+  card.setConfig({ default_mode: "power", show_card: true });
+  assert.match(card.shadowRoot.innerHTML, /<ha-card class="card/);
+
+  card.setConfig({ default_mode: "power", show_card: false });
+  const html = card.shadowRoot.innerHTML;
+  assert.match(html, /<div class="card frameless/);
+
+  const frameless = html.match(/\.card\.frameless \{[^}]*\}/)[0];
+  assert.match(frameless, /background: transparent/);
+  assert.match(frameless, /border: none/);
+  assert.match(frameless, /border-radius: 0/);
+  assert.match(frameless, /box-shadow: none/);
+  assert.doesNotMatch(frameless, /padding|margin|height/);
+
+  const cardRule = html.match(/ha-card,\s*\.card \{[^}]*\}/)[0];
+  assert.match(cardRule, /padding: 12px 10px/);
+  assert.match(cardRule, /min-height: 86px/);
+
+  assert.match(
+    Card.getConfigForm().computeHelper({ name: "show_card" }),
+    /layout stays the same/
   );
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "ha_power-energy-mix-card",
-  "version": "2.0.1",
+  "version": "2.1.0-beta.1",
   "type": "module",
   "private": true,
   "description": "Energy source composition card for Home Assistant",

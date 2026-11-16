@@ -21,11 +21,13 @@ No source entity has to be configured in the card.
 - Live Power composition with animation
 - Period-based Energy composition without animation
 - Composition bar automatically fills the available card height
+- Frameless mode hides only the card frame and keeps the layout unchanged
 - Defaults to a 6-column, content-height layout in Sections views
 - Uses Home Assistant's Energy dashboard source configuration
 - Uses the active Energy collection period
 - Defaults to today's Energy dashboard statistics without a collection key
 - Shows localized relative period names and falls back to exact dates
+- Replaces the period label with a custom title when one is configured
 - Uses Home Assistant's language, number format, units, colors, and themes
 - Handles grid export and battery charging before assigning home-consumption
   shares
@@ -63,6 +65,7 @@ HACS normally registers this resource automatically:
 
 ```yaml
 type: custom:ha_power-energy-mix-card
+title: Home energy
 default_mode: power
 show_card: true
 tap_action:
@@ -84,22 +87,24 @@ collection_key: energy_1
 
 | Option | Required | Default | Description |
 | --- | --- | --- | --- |
+| `title` | No | Empty | Optional label shown instead of the period name |
 | `collection_key` | No | Today | Optional shared Energy collection key; it must start with `energy_` |
 | `default_mode` | No | `power` | Initial mode: `power` or `energy` |
-| `title` | No | Empty | Optional card title |
-| `show_card` | No | `true` | Whether to render the Home Assistant card background |
+| `show_card` | No | `true` | Whether to render the Home Assistant card frame; off hides only the background, border, and shadow |
 | `tap_action` | No | `none` | Home Assistant tap action, including Browser Mod DOM events |
 | `hold_action` | No | `none` | Home Assistant hold action |
 | `double_tap_action` | No | `none` | Home Assistant double-tap action |
 
-All options are available in the visual editor. Power mode displays Home
-Assistant's localized **Now** label; Energy mode displays its localized
-relative period name, such as **Today**, **Yesterday**, or **Last week**.
-Periods without a Home Assistant name display an exact date or date range.
+All options are available in the visual editor. Without a `title`, Power mode
+displays Home Assistant's localized **Now** label; Energy mode displays its
+localized relative period name, such as **Today**, **Yesterday**, or
+**Last week**. Periods without a Home Assistant name display an exact date or
+date range. A configured `title` replaces that label.
 Tap, hold, and double-tap actions are grouped in the **Interactions** section.
-Title, default view, Energy collection key, and card background are grouped in
+Title, Energy collection key, default view, and card background are grouped in
 the **Configuration** section. The Energy collection key is only shown when
-Energy is selected.
+Energy is selected. Both sections list their options in the order of the table
+above.
 
 Browser Mod popup example:
 
