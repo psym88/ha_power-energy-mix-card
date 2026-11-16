@@ -167,7 +167,7 @@ test("provides a visual editor schema and stub configuration", () => {
   assert.equal(configuration.flatten, true);
   assert.deepEqual(
     configuration.schema.map((entry) => entry.name),
-    ["title", "default_mode", "show_card"]
+    ["title", "default_mode", "show_card", "show_header"]
   );
   const interactions = Card.getConfigForm().schema[1];
   assert.equal(interactions.type, "expandable");
@@ -179,6 +179,7 @@ test("provides a visual editor schema and stub configuration", () => {
   assert.deepEqual(Card.getStubConfig(), {
     default_mode: "power",
     show_card: true,
+    show_header: true,
     tap_action: { action: "none" },
     hold_action: { action: "none" },
     double_tap_action: { action: "none" },
@@ -192,11 +193,11 @@ test("provides a visual editor schema and stub configuration", () => {
 test("shows the collection key only for the Energy editor mode", () => {
   assert.deepEqual(
     buildConfigSchema("power")[0].schema.map((entry) => entry.name),
-    ["title", "default_mode", "show_card"]
+    ["title", "default_mode", "show_card", "show_header"]
   );
   assert.deepEqual(
     buildConfigSchema("energy")[0].schema.map((entry) => entry.name),
-    ["title", "collection_key", "default_mode", "show_card"]
+    ["title", "collection_key", "default_mode", "show_card", "show_header"]
   );
   assert.equal(
     Card.getConfigElement().constructor,
@@ -247,14 +248,14 @@ test("updates the existing editor form without closing expandable sections", () 
   assert.equal(form.schema[0].title, "Configuration");
   assert.deepEqual(
     form.schema[0].schema.map((entry) => entry.name),
-    ["title", "default_mode", "show_card"]
+    ["title", "default_mode", "show_card", "show_header"]
   );
 
   editor.setConfig({ default_mode: "energy" });
   assert.equal(renderCount, 0);
   assert.deepEqual(
     form.schema[0].schema.map((entry) => entry.name),
-    ["title", "collection_key", "default_mode", "show_card"]
+    ["title", "collection_key", "default_mode", "show_card", "show_header"]
   );
 });
 
@@ -638,6 +639,34 @@ test("hides only the frame when the card background is off", () => {
   assert.match(
     Card.getConfigForm().computeHelper({ name: "show_card" }),
     /layout stays the same/
+  );
+});
+
+test("hides the whole title row when the header is off", () => {
+  const card = new Card();
+  card._data = { prefs: { energy_sources: [] }, stats: {} };
+  card.hass = { locale: { language: "en" }, states: {}, localize: () => "" };
+
+  card.setConfig({ default_mode: "power", show_header: true });
+  const shown = card.shadowRoot.innerHTML;
+  assert.match(shown, /class="header"/);
+  assert.match(shown, /class="period-label"/);
+  assert.doesNotMatch(shown, /class="card[^"]*no-header/);
+
+  card.setConfig({ default_mode: "power", show_header: false });
+  const hidden = card.shadowRoot.innerHTML;
+  assert.doesNotMatch(hidden, /class="header"|class="period-label"/);
+  assert.match(hidden, /class="card\s+no-header\s"/);
+  assert.match(hidden, /class="message"/);
+
+  const noHeader = hidden.match(/\.card\.no-header \{[^}]*\}/)[0];
+  assert.match(noHeader, /min-height: 0/);
+  assert.match(noHeader, /padding-top: 0/);
+  assert.match(noHeader, /padding-bottom: 0/);
+
+  assert.match(
+    Card.getConfigForm().computeHelper({ name: "show_header" }),
+    /only the composition bar/
   );
 });
 

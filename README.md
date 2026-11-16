@@ -22,6 +22,7 @@ No source entity has to be configured in the card.
 - Period-based Energy composition without animation
 - Composition bar automatically fills the available card height
 - Frameless mode hides only the card frame and keeps the layout unchanged
+- Title row can be hidden so only the composition bar is left
 - Defaults to a 6-column, content-height layout in Sections views
 - Uses Home Assistant's Energy dashboard source configuration
 - Uses the active Energy collection period
@@ -68,6 +69,7 @@ type: custom:ha_power-energy-mix-card
 title: Home energy
 default_mode: power
 show_card: true
+show_header: true
 tap_action:
   action: none
 hold_action:
@@ -91,6 +93,7 @@ collection_key: energy_1
 | `collection_key` | No | Today | Optional shared Energy collection key; it must start with `energy_` |
 | `default_mode` | No | `power` | Initial mode: `power` or `energy` |
 | `show_card` | No | `true` | Whether to render the Home Assistant card frame; off hides only the background, border, and shadow |
+| `show_header` | No | `true` | Whether to render the title row above the bar; off leaves only the composition bar |
 | `tap_action` | No | `none` | Home Assistant tap action, including Browser Mod DOM events |
 | `hold_action` | No | `none` | Home Assistant hold action |
 | `double_tap_action` | No | `none` | Home Assistant double-tap action |
@@ -100,12 +103,13 @@ displays Home Assistant's localized **Now** label; Energy mode displays its
 localized relative period name, such as **Today**, **Yesterday**, or
 **Last week**. Periods without a Home Assistant name display an exact date or
 date range. A configured `title` replaces that label, and a `title` of only
-whitespace hides it.
+whitespace hides it. `show_header: false` hides the whole row, value included, so
+the bar takes the full card height.
 Tap, hold, and double-tap actions are grouped in the **Interactions** section.
-Title, Energy collection key, default view, and card background are grouped in
-the **Configuration** section. The Energy collection key is only shown when
-Energy is selected. Both sections list their options in the order of the table
-above.
+Title, Energy collection key, default view, card background, and title row are
+grouped in the **Configuration** section. The Energy collection key is only shown
+when Energy is selected. Both sections list their options in the order of the
+table above.
 
 Browser Mod popup example:
 

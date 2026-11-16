@@ -478,6 +478,10 @@ function buildConfigSchema(mode = "power") {
     name: "show_card",
     selector: { boolean: {} },
   });
+  configuration.push({
+    name: "show_header",
+    selector: { boolean: {} },
+  });
 
   return [
     {
@@ -526,6 +530,7 @@ function computeConfigLabel(schema, localize = () => "") {
   if (schema.name === "collection_key") return "Energy collection key";
   if (schema.name === "default_mode") return "Default view";
   if (schema.name === "show_card") return "Show card background";
+  if (schema.name === "show_header") return "Show title row";
   if (schema.name === "tap_action") return "Tap action";
   if (schema.name === "hold_action") return "Hold action";
   if (schema.name === "double_tap_action") return "Double-tap action";
@@ -541,6 +546,9 @@ function computeConfigHelper(schema) {
   }
   if (schema.name === "show_card") {
     return "Off hides only the background, border, and shadow. The layout stays the same.";
+  }
+  if (schema.name === "show_header") {
+    return "Off hides the whole title row, so only the composition bar is left.";
   }
   return schema.name === "collection_key"
     ? "Optional. Without a collection key, Energy mode displays today's values. Use the same energy_* key to share a period with related Energy cards."
@@ -653,6 +661,7 @@ class HaPowerEnergyMixCard extends HTMLElement {
     return {
       default_mode: "power",
       show_card: true,
+      show_header: true,
       tap_action: { action: "none" },
       hold_action: { action: "none" },
       double_tap_action: { action: "none" },
@@ -998,6 +1007,7 @@ class HaPowerEnergyMixCard extends HTMLElement {
               this._data?.end
             );
     const wrapperTag = this._config.show_card === false ? "div" : "ha-card";
+    const showHeader = this._config.show_header !== false;
     const actionable = [
       "tap_action",
       "hold_action",
@@ -1033,6 +1043,11 @@ class HaPowerEnergyMixCard extends HTMLElement {
           user-select: none;
           -webkit-user-select: none;
           -webkit-tap-highlight-color: transparent;
+        }
+        .card.no-header {
+          min-height: 0;
+          padding-top: 0;
+          padding-bottom: 0;
         }
         .header {
           display: flex;
@@ -1125,13 +1140,17 @@ class HaPowerEnergyMixCard extends HTMLElement {
       </style>
       <${wrapperTag} class="card ${
         this._config.show_card === false ? "frameless" : ""
-      } ${actionable ? "actionable" : ""}" ${
-        actionable ? 'role="button" tabindex="0"' : ""
-      }>
-        <div class="header">
+      } ${showHeader ? "" : "no-header"} ${
+        actionable ? "actionable" : ""
+      }" ${actionable ? 'role="button" tabindex="0"' : ""}>
+        ${
+          showHeader
+            ? `<div class="header">
           <div class="period-label">${escapeHtml(periodLabel)}</div>
           <div class="value">${escapeHtml(valueText)}</div>
-        </div>
+        </div>`
+            : ""
+        }
         ${
           this._error
             ? `<div class="message">${escapeHtml(this._error.message)}</div>`

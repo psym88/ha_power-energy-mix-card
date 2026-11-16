@@ -5,7 +5,7 @@
 - Never introduce German text into code or documentation.
 - Keep the card dependency-free and edit `ha_power-energy-mix-card.js` directly; do not add a build step unless the project requirements materially change.
 - Run `npm run check` before committing.
-- Keep one option order everywhere: `title`, `collection_key`, `default_mode`, `show_card`, then `tap_action`, `hold_action`, `double_tap_action`. The visual editor schema, the YAML examples and the options table in `README.md` all follow it, and a test compares the editor against that table.
+- Keep one option order everywhere: `title`, `collection_key`, `default_mode`, `show_card`, `show_header`, then `tap_action`, `hold_action`, `double_tap_action`. The visual editor schema, the YAML examples and the options table in `README.md` all follow it, and a test compares the editor against that table.
 
 ## Where this card lives
 
