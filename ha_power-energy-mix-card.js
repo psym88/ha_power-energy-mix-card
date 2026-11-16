@@ -1,6 +1,6 @@
 // HA Power & Energy Mix Card
 
-const CARD_VERSION = "2.0.1";
+const CARD_VERSION = "2.1.0-beta.3";
 const CARD_TAG = "ha_power-energy-mix-card";
 const EDITOR_TAG = "ha_power-energy-mix-card-editor";
 const HOLD_DELAY_MS = 500;
